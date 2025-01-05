@@ -202,6 +202,9 @@ class CTkTabview(CTkBaseClass):
                            width=0,
                            border_width=0,
                            corner_radius=0)
+        
+        new_tab.grid_columnconfigure(0, weight=1)
+        new_tab.grid_rowconfigure(0, weight=1)
 
         if self._fg_color == "transparent":
             new_tab.configure(fg_color=self._apply_appearance_mode(self._bg_color),

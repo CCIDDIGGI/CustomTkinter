@@ -12,6 +12,7 @@ from .appearance_mode import CTkAppearanceModeBaseClass
 from .scaling import CTkScalingBaseClass
 from .core_widget_classes import CTkBaseClass
 from .ctk_label import CTkLabel
+from .ctk_button import CTkButton
 from .font import CTkFont
 from .theme import ThemeManager
 
@@ -36,6 +37,11 @@ class CTkScrollableFrame(tkinter.Frame, CTkAppearanceModeBaseClass, CTkScalingBa
                  label_text: str = "",
                  label_font: Optional[Union[tuple, CTkFont]] = None,
                  label_anchor: str = "center",
+                 # jp_bot additions
+                 is_custom: bool = False,
+                 callback_cancel = None,
+                 callback_confirm = None,
+
                  orientation: Literal["vertical", "horizontal"] = "vertical"):
 
         self._orientation = orientation
@@ -62,6 +68,13 @@ class CTkScrollableFrame(tkinter.Frame, CTkAppearanceModeBaseClass, CTkScalingBa
         self._label = CTkLabel(self._parent_frame, text=label_text, anchor=label_anchor, font=label_font,
                                corner_radius=self._parent_frame.cget("corner_radius"), text_color=label_text_color,
                                fg_color=ThemeManager.theme["CTkScrollableFrame"]["label_fg_color"] if label_fg_color is None else label_fg_color)
+
+        self._is_custom = is_custom
+        self._callback_cancel = callback_cancel
+        self._callback_confirm = callback_confirm
+        self._frame_buttons = CTkFrame(self._parent_frame)
+        self._btn_cancel = CTkButton(self._frame_buttons, text="Cancel", command=self.on_cancel)
+        self._btn_add = CTkButton(self._frame_buttons, text="Confirm", command=self.on_confirm)
 
         tkinter.Frame.__init__(self, master=self._parent_canvas, highlightthickness=0)
         CTkAppearanceModeBaseClass.__init__(self)
@@ -90,6 +103,14 @@ class CTkScrollableFrame(tkinter.Frame, CTkAppearanceModeBaseClass, CTkScalingBa
 
         self._shift_pressed = False
 
+    def on_cancel(self) -> None:
+        if self._callback_cancel:
+            self._callback_cancel()
+
+    def on_confirm(self) -> None:
+        if self._callback_confirm:
+            self._callback_confirm()
+
     def destroy(self):
         tkinter.Frame.destroy(self)
         CTkAppearanceModeBaseClass.destroy(self)
@@ -114,6 +135,12 @@ class CTkScrollableFrame(tkinter.Frame, CTkAppearanceModeBaseClass, CTkScalingBa
             self._parent_frame.grid_rowconfigure(1, weight=1)
             self._parent_canvas.grid(row=1, column=0, sticky="nsew", padx=(border_spacing, 0), pady=border_spacing)
             self._scrollbar.grid(row=1, column=1, sticky="nsew", pady=border_spacing)
+
+            if self._is_custom:
+                self._frame_buttons.grid(row=2, column=0, sticky="ew", padx=border_spacing, pady=border_spacing)
+                self._frame_buttons.columnconfigure((0,1), weight=1)
+                self._btn_cancel.grid(row=0, column=0, sticky="e")
+                self._btn_add.grid(row=0, column=1, sticky="w")
 
             if self._label_text is not None and self._label_text != "":
                 self._label.grid(row=0, column=0, columnspan=2, sticky="ew", padx=border_spacing, pady=border_spacing)
